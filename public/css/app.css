@@ -1,0 +1,15 @@
+html,body { height:100%; }
+
+.expand-to-bottom {
+	height: 80vh;
+}
+
+.btn-toolbar {
+	margin-bottom: 20px;
+}
+
+#logo {
+	background: url('../img/colors.jpg');
+	width: 40px;
+	height: 40px;
+}
