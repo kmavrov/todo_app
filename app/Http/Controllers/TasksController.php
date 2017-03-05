@@ -3,12 +3,20 @@
 namespace App\Http\Controllers;
 
 use Task;
+use Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage;
 
 class TasksController extends Controller
-{
+{	
+	/**
+	* Private helper properties for Excel
+	*/
+	private $project;
+	private $tasks;
     /**
      * Create a new controller instance.
      *
@@ -34,12 +42,20 @@ class TasksController extends Controller
         $sort = $request->input('sort');
         $sortColumn = array_keys($sort);
         $sortColumn = $sortColumn[0];
+
+        $for_export = $request->input('for_export');
+        
         $tasks = \App\Task::where('project_id', $project_id)
                 ->groupBy('id')
-                ->orderBy($sortColumn, $sort[$sortColumn])
+                ->orderBy($sortColumn, $sort[$sortColumn]);
+        if ($for_export) {
+        	$tasks = $tasks->get();
+        } else {
+        	$tasks = $tasks
                 ->limit($rowCount)
                 ->offset(($page - 1) * $rowCount)
                 ->get();
+        }
 
 
         $finalTasks = array();
@@ -76,7 +92,7 @@ class TasksController extends Controller
         $description = $request->input('description');
 
         $task = \App\Task::find($task_id);
-        
+
         if (isset($completed)) {
         	$task->completed = $completed ? 1 : 0;
         }
@@ -119,5 +135,40 @@ class TasksController extends Controller
         $task->project_id  = $input['project_id'];
 
         $task->save();
+    }
+
+    /**
+    * Export project to excel
+    *  @param integer id - id of the selected project
+    */
+    public function exportTasksToExcel(Request $request) {
+        $id = $request->input('project_id');
+        
+        $this->tasks = $this->getTasks($request, $id);
+
+        $this->project = \App\Project::find($id);
+
+        $filename = 'export_'.time();
+        Excel::create($filename, function($excel) {
+
+            // Set the title
+            $excel->setTitle('Project export');
+
+            // Chain the setters
+            $excel->setCreator('Kiril Mavrov')
+                  ->setCompany('To to app');
+
+            // Call them separately
+            $excel->setDescription('A simple excel export');
+
+            $excel->sheet($this->project->name, function($sheet) {
+
+            	$sheet->fromArray($this->tasks['rows']);
+
+            });
+
+        })->save();
+
+        return Storage::url('exports/'.$filename.'.xls');
     }
 }

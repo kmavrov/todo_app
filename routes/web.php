@@ -31,6 +31,7 @@ Route::get('/tasks/{project_id}/', 'TasksController@getTasks');
 Route::put('/tasks', 'TasksController@editTask');
 Route::delete('/tasks', 'TasksController@deleteTask');
 Route::post('/tasks', 'TasksController@createNewTask');
+Route::post('/tasks/exportToExcel', 'TasksController@exportTasksToExcel');
 
 Route::get('/admin', 'AdminController@getProjectsForDeletionCount');
 Route::get('/admin/getProjectsForDeletion', 'AdminController@getProjectsForDeletion');

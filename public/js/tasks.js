@@ -106,7 +106,6 @@ function bindTasksButtons() {
     $('#export-task-btn').bind('click', function () {
         addingNewTask = false;
         exportTasks();
-        $('#add-edit-task-modal').modal('toggle');
     });
     $('#mark-task-undone').bind('click', function () {
         markTaskAsUndone();
@@ -215,4 +214,22 @@ function saveTaskChanges() {
             }
         });
     }
+}
+
+function exportTasks() {
+    $.ajax({
+        type: "POST",
+        url: APP_URL + '/tasks/exportToExcel',
+        data: {
+            project_id: $('#projects-tree').treeview('getSelected')[0].id,
+            sort: {'name': 'asc'},
+            for_export: true
+        },
+        success: function( result ) {
+            var url = APP_URL.substring(0, APP_URL.length - 7);
+            url = url + result;
+            $('#save-file-button').attr("href", url);
+            $('#download-file-modal').modal('toggle');
+        }
+    });
 }
